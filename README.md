@@ -1,6 +1,4 @@
-# crosspoint-stats-editor
-
-## CrossInk Global Stats Editor
+# CrossInk Global Stats Editor
 
 A powerful command-line tool to view and edit the `global_stats.bin` file used by **CrossInk** (and CrossPoint) e-reader software.
 
