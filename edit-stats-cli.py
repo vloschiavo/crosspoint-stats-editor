@@ -4,7 +4,6 @@ import struct
 import shutil
 import sys
 from pathlib import Path
-from datetime import timedelta
 
 def decode_global_stats(bin_path: Path, show: bool = True):
     """Decode and display global_stats.bin"""
@@ -65,8 +64,8 @@ def decode_global_stats(bin_path: Path, show: bool = True):
     }
 
 
-def edit_global_stats(bin_path: Path, sessions=None, seconds=None, pages=None, completed=None):
-    """Edit the stats file with provided values"""
+def edit_global_stats(bin_path: Path, **kwargs):
+    """Edit the stats file"""
     stats = decode_global_stats(bin_path, show=False)
     if stats is None:
         return
@@ -76,15 +75,33 @@ def edit_global_stats(bin_path: Path, sessions=None, seconds=None, pages=None, c
     shutil.copy2(bin_path, backup)
     print(f"✅ Backup created: {backup}")
 
-    # Update values
-    if sessions is not None:
-        stats['total_sessions'] = max(0, sessions)
-    if seconds is not None:
-        stats['total_reading_seconds'] = max(0, seconds)
-    if pages is not None:
-        stats['total_pages_turned'] = max(0, pages)
-    if completed is not None:
-        stats['completed_books'] = max(0, completed)
+    # Handle reset
+    if kwargs.get('reset'):
+        stats['total_sessions'] = 0
+        stats['total_reading_seconds'] = 0
+        stats['total_pages_turned'] = 0
+        stats['completed_books'] = 0
+        print("🔄 All statistics have been reset to 0")
+    else:
+        # Apply absolute sets
+        for key, value in [
+            ('total_sessions', kwargs.get('sessions')),
+            ('total_reading_seconds', kwargs.get('seconds')),
+            ('total_pages_turned', kwargs.get('pages')),
+            ('completed_books', kwargs.get('completed'))
+        ]:
+            if value is not None:
+                stats[key] = max(0, value)
+
+        # Apply increments
+        for key, value in [
+            ('total_sessions', kwargs.get('add_sessions')),
+            ('total_reading_seconds', kwargs.get('add_seconds')),
+            ('total_pages_turned', kwargs.get('add_pages')),
+            ('completed_books', kwargs.get('add_completed'))
+        ]:
+            if value is not None:
+                stats[key] = max(0, stats[key] + value)
 
     version = stats['version']
 
@@ -122,17 +139,20 @@ if __name__ == "__main__":
                         default='.crosspoint/global_stats.bin',
                         help='Path to global_stats.bin file')
     
-    parser.add_argument('--sessions', '-s', type=int,
-                        help='Set total reading sessions')
+    # Absolute set
+    parser.add_argument('--sessions', '-s', type=int, help='Set total reading sessions')
+    parser.add_argument('--seconds', '-t', type=int, help='Set total reading time in seconds')
+    parser.add_argument('--pages', '-p', type=int, help='Set total pages turned')
+    parser.add_argument('--completed', '-c', type=int, help='Set number of completed books')
     
-    parser.add_argument('--seconds', '-t', type=int,
-                        help='Set total reading time in seconds')
+    # Increments
+    parser.add_argument('--add-sessions', type=int, help='Add to total reading sessions')
+    parser.add_argument('--add-seconds', type=int, help='Add to total reading time (seconds)')
+    parser.add_argument('--add-pages', type=int, help='Add to total pages turned')
+    parser.add_argument('--add-completed', type=int, help='Add to completed books')
     
-    parser.add_argument('--pages', '-p', type=int,
-                        help='Set total pages turned')
-    
-    parser.add_argument('--completed', '-c', type=int,
-                        help='Set number of completed books')
+    parser.add_argument('--reset', action='store_true',
+                        help='Reset ALL statistics to zero')
     
     parser.add_argument('--view', '-v', action='store_true',
                         help='Only view current stats (no editing)')
@@ -143,13 +163,21 @@ if __name__ == "__main__":
 
     if args.view:
         decode_global_stats(file_path)
-    elif any([args.sessions, args.seconds, args.pages, args.completed]):
+    elif args.reset or any([
+        args.sessions, args.seconds, args.pages, args.completed,
+        args.add_sessions, args.add_seconds, args.add_pages, args.add_completed
+    ]):
         edit_global_stats(
             file_path,
             sessions=args.sessions,
             seconds=args.seconds,
             pages=args.pages,
-            completed=args.completed
+            completed=args.completed,
+            add_sessions=args.add_sessions,
+            add_seconds=args.add_seconds,
+            add_pages=args.add_pages,
+            add_completed=args.add_completed,
+            reset=args.reset
         )
     else:
         print("ℹ️  No changes specified. Showing current stats:")
