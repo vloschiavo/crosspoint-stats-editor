@@ -13,6 +13,11 @@ A powerful command-line tool to view and edit the `global_stats.bin` file used b
 - Automatic backup creation (`global_stats.bin.bak`)
 - Supports version 1 and 2 of the file format
 
+edit-stats.py       =   interactive stats editor
+edit-stats-cli.py   =   stats editor with command line options
+decode-stats.py     =   read-only stats viewer
+.crosspoint/sample-blank-global_stats.bin   = sample blank file
+
 ---
 
 ## Usage
@@ -21,19 +26,19 @@ A powerful command-line tool to view and edit the `global_stats.bin` file used b
 
 ```bash
 # View current stats
-python global_stats_editor.py --view
+python edit-stats-cli.py --view
 
 # Reset everything to zero
-python global_stats_editor.py --reset
+python edit-stats-cli.py --reset
 
 # Set absolute values
-python global_stats_editor.py --sessions 2500 --seconds 720000 --completed 95
+python edit-stats-cli.py --sessions 2500 --seconds 720000 --completed 95
 
 # Increment existing stats
-python global_stats_editor.py --add-sessions 100 --add-seconds 3600 --add-pages 500
+python edit-stats-cli.py --add-sessions 100 --add-seconds 3600 --add-pages 500
 
 # Mix set and add (set first, then add)
-python global_stats_editor.py -s 1000 --add-seconds 7200
+python edit-stats-cli.py -s 1000 --add-seconds 7200
 
 # All Options
 
@@ -54,12 +59,12 @@ python global_stats_editor.py -s 1000 --add-seconds 7200
 # Examples
 
 # Add 50 hours of reading time
-python global_stats_editor.py --add-seconds $((50*3600))
+python edit-stats-cli.py --add-seconds $((50*3600))
 
 # Big boost
-python global_stats_editor.py --add-sessions 800 --add-pages 15000 --add-completed 30
+python edit-stats-cli.py --add-sessions 800 --add-pages 15000 --add-completed 30
 
 # Reset then set new values
-python global_stats_editor.py --reset --sessions 500 --seconds 180000
+python edit-stats-cli.py --reset --sessions 500 --seconds 180000
 
 Important: Always safely eject your sd-card after editing and restart the device.
